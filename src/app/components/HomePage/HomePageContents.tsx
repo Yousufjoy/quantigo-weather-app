@@ -1,13 +1,12 @@
-import React from 'react';
-
-
+import React from "react";
+import WeatherApp from "./WeatherApp";
 
 const HomePageContents = () => {
-    return (
-        <div>
-    
-        </div>
-    );
+  return (
+    <div>
+      <WeatherApp />
+    </div>
+  );
 };
 
 export default HomePageContents;
