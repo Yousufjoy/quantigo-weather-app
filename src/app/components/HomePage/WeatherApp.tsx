@@ -1,38 +1,48 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react';
-import { Search} from 'lucide-react';
-import { WeatherData, ForecastData, ForecastItem, DailyForecast } from '@/app/types';
+import React, { useState } from "react";
+import { Search, Sun, Settings, MapPin } from "lucide-react";
+import {
+  WeatherData,
+  ForecastData,
+  ForecastItem,
+  DailyForecast,
+} from "@/app/types";
 
 const WeatherApp = () => {
   // ✅ Typed state
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [forecastData, setForecastData] = useState<ForecastData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [error, setError] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const API_KEY = '9d729cfd40c256defac28e6a8266b774';
-  const BASE_URL = 'https://api.openweathermap.org/data/2.5';
+const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+const BASE_URL = process.env.NEXT_PUBLIC_OPENWEATHER_BASE_URL;
+
 
   const formatDate = (timestamp: number): string => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Date(timestamp * 1000).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const formatTime = (timestamp: number): string => {
-    return new Date(timestamp * 1000).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      hour12: true,
-    });
+    return new Date(timestamp * 1000)
+      .toLocaleTimeString("en-US", {
+        hour: "numeric",
+        hour12: true,
+      })
+      .replace(":00", ""); // Remove minutes to match the image "3 PM"
   };
 
   const getDayName = (timestamp: number): string => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', { weekday: 'short' });
+    return new Date(timestamp * 1000).toLocaleDateString("en-US", {
+      weekday: "short",
+    });
   };
 
   const getWeatherIcon = (iconCode: string): string => {
@@ -43,7 +53,7 @@ const WeatherApp = () => {
     if (!searchQuery.trim()) return;
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Fetch current weather
@@ -52,7 +62,7 @@ const WeatherApp = () => {
       );
 
       if (!weatherResponse.ok) {
-        throw new Error('City not found');
+        throw new Error("City not found");
       }
 
       const weatherResult: WeatherData = await weatherResponse.json();
@@ -66,9 +76,10 @@ const WeatherApp = () => {
 
       setWeatherData(weatherResult);
       setForecastData(forecastResult);
-      setSearchQuery('');
+      setSearchQuery("");
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather data';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch weather data";
       setError(errorMessage);
       setWeatherData(null);
       setForecastData(null);
@@ -122,7 +133,7 @@ const WeatherApp = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#2C1B4D] flex items-center justify-center">
         <div className="text-center text-white">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-white border-t-transparent mx-auto mb-4"></div>
           <p className="text-xl font-semibold">Loading weather data...</p>
@@ -132,48 +143,52 @@ const WeatherApp = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
+    // Using the arbitrary dark purple color sampled from the image
+    <div className="min-h-screen bg-[radial-gradient(circle,#551C84_60%,#2B1B59_100%)]  text-white font-sans">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center text-white">
-            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center mr-3">
-              ☀️
-            </div>
-            <h1 className="text-xl font-semibold">
-              {weatherData ? 'Weather Now' : 'Weather Today'}
-            </h1>
+        <div className="flex justify-between items-center mb-16">
+          <div className="flex items-center gap-3">
+            {/* Replaced emoji with Lucide icon */}
+            <Sun className="text-yellow-400 w-8 h-8 fill-yellow-400" />
+            <h1 className="text-xl font-semibold">Weather Now</h1>
           </div>
-          <div className="text-white text-sm opacity-70">
-            🌍 Units ▼
+          {/* Updated Units button to match the pill shape and gear icon */}
+          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg text-sm cursor-pointer hover:bg-white/20 transition">
+            <Settings size={14} />
+            <span>Units ▼</span>
           </div>
         </div>
 
         {/* Title */}
         <div className="text-center mb-8">
-          <h2 className="text-2xl text-white font-light">Hows the sky looking today?</h2>
+          <h2 className="text-3xl font-light">
+            How&#39;s the sky looking today?
+          </h2>
         </div>
 
         {/* Search Bar */}
-        <div className="max-w-lg mx-auto mb-8">
-          <div className="relative flex">
+        {/* Changed structure to separate the input and the button */}
+        <div className="max-w-2xl mx-auto mb-12">
+          <div className="flex gap-3">
             <div className="flex-1 relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+                onKeyPress={(e) => e.key === "Enter" && handleSearch(e)}
                 placeholder="Search for a place..."
-                className="w-full px-4 py-3 pl-12 rounded-l-xl bg-black/30 border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-300"
+                // Using the sampled dark purple color for the input background
+                className="w-full px-4 py-3 pl-12 rounded-xl bg-[#362A4F] border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
               />
               <Search
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-300"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
                 size={18}
               />
             </div>
             <button
               onClick={handleSearch}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-r-xl transition-colors duration-200 font-semibold"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl transition-colors duration-200 font-semibold"
             >
               Search
             </button>
@@ -190,91 +205,100 @@ const WeatherApp = () => {
         {/* Empty State */}
         {!weatherData && !error && (
           <div className="text-center text-white/70 mt-16">
-            <div className="mb-8">
-              <div className="w-16 h-16 mx-auto mb-4 opacity-50">
-                <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </div>
-              <p className="text-lg">Search for a city to see weather information</p>
-            </div>
+            <p className="text-lg">
+              Search for a city to see weather information
+            </p>
           </div>
         )}
 
         {/* Weather Data Display */}
         {weatherData && (
-          <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Main Weather Card */}
-              <div className="lg:col-span-2">
-                <div className="bg-blue-600/80 backdrop-blur-sm rounded-3xl p-8 text-white relative overflow-hidden">
-                  {/* Location and Date */}
-                  <div className="mb-6">
-                    <h3 className="text-2xl font-semibold mb-1">
-                      {weatherData.name}, {weatherData.sys.country}
-                    </h3>
-                    <p className="text-blue-100">{formatDate(weatherData.dt)}</p>
+          <div className="">
+            <div className="grid lg:grid-cols-14 gap-6 ">
+              {/* LEFT COLUMN (Contains Main Card, Stats, Daily) */}
+              <div className="lg:col-span-9 flex flex-col gap-6">
+                {/* Main Weather Card */}
+                {/* Updated gradient and repositioned elements */}
+                <div className="bg-gradient-to-br from-[#4953EB] to-[#8837EA] rounded-3xl p-6 text-white relative min-h-[220px] flex flex-col justify-between">
+                  {/* Top Row */}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-2xl font-bold mb-1">
+                        {weatherData.name}, {weatherData.sys.country}
+                      </h3>
+                      <p className="text-blue-100 text-sm">
+                        {formatDate(weatherData.dt)}
+                      </p>
+                    </div>
+                    {/* Pin Icon */}
+                    <MapPin className="text-red-500 fill-red-500" size={20} />
                   </div>
 
-                  {/* Weather Icon */}
-                  <div className="absolute top-6 right-6">
+                  {/* Bottom Row */}
+                  <div className="flex justify-between items-end mt-4">
+                    {/* Weather Icon - Bottom Left */}
                     <img
                       src={getWeatherIcon(weatherData.weather[0].icon)}
                       alt={weatherData.weather[0].description}
-                      className="w-16 h-16 opacity-80"
+                      className="w-12 h-12"
                     />
-                  </div>
-
-                  {/* Temperature */}
-                  <div className="mb-8">
-                    <div className="text-7xl font-light mb-2">
+                    {/* Temperature - Bottom Right */}
+                    <div className="text-7xl font-light leading-none">
                       {Math.round(weatherData.main.temp)}°
-                    </div>
-                  </div>
-
-                  {/* Weather Stats Grid */}
-                  <div className="grid grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-blue-200 text-sm mb-1">Feels Like</p>
-                      <p className="text-xl font-semibold">
-                        {Math.round(weatherData.main.feels_like)}°
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-blue-200 text-sm mb-1">Humidity</p>
-                      <p className="text-xl font-semibold">{weatherData.main.humidity}%</p>
-                    </div>
-                    <div>
-                      <p className="text-blue-200 text-sm mb-1">Wind</p>
-                      <p className="text-xl font-semibold">{Math.round(weatherData.wind.speed)} km/h</p>
-                    </div>
-                    <div>
-                      <p className="text-blue-200 text-sm mb-1">Precipitation</p>
-                      <p className="text-xl font-semibold">0 mm</p>
                     </div>
                   </div>
                 </div>
 
+                {/* Weather Stats Grid */}
+                {/* MOVED OUT of the main card and styled as individual cards */}
+                <div className="grid grid-2 md:grid-cols-4 gap-4">
+                  <div className="bg-[#362A4F] rounded-xl p-5">
+                    <p className="text-gray-400 text-xs mb-1">Feels Like</p>
+                    <p className="text-2xl font-medium">
+                      {Math.round(weatherData.main.feels_like)}°
+                    </p>
+                  </div>
+                  <div className="bg-[#362A4F] rounded-xl p-5">
+                    <p className="text-gray-400 text-xs mb-1">Humidity</p>
+                    <p className="text-2xl font-medium">
+                      {weatherData.main.humidity}%
+                    </p>
+                  </div>
+                  <div className="bg-[#362A4F] rounded-xl p-5">
+                    <p className="text-gray-400 text-xs mb-1">Wind</p>
+                    {/* Slightly smaller font for Wind/Precipitation per image */}
+                    <p className="text-xl font-medium leading-8">
+                      {Math.round(weatherData.wind.speed)} km/h
+                    </p>
+                  </div>
+                  <div className="bg-[#362A4F] rounded-xl p-5">
+                    <p className="text-gray-400 text-xs mb-1">Precipitation</p>
+                    <p className="text-xl font-medium leading-8">0 mm</p>
+                  </div>
+                </div>
+
                 {/* Daily Forecast */}
-                <div className="mt-6">
-                  <h4 className="text-white text-lg font-semibold mb-4">Daily forecast</h4>
-                  <div className="grid grid-cols-7 gap-2">
+                <div className="">
+                  <h4 className="text-white font-semibold mb-4">
+                    Daily forecast
+                  </h4>
+                  <div className="flex gap-3 w-full">
                     {getDailyForecast().map((day, index) => (
                       <div
                         key={index}
-                        className="bg-purple-800/50 backdrop-blur-sm rounded-2xl p-4 text-center text-white"
+                        className="bg-[#362A4F] rounded-xl p-4 text-center text-white flex flex-col items-center min-h-[120px] flex-1"
                       >
-                        <p className="text-sm mb-2 opacity-90">
-                          {index === 0 ? 'Tue' : getDayName(day.date)}
+                        <p className="text-xs mb-3 text-gray-400">
+                          {index === 0 ? "Tue" : getDayName(day.date)}
                         </p>
                         <img
                           src={getWeatherIcon(day.icon)}
                           alt={day.description}
-                          className="w-8 h-8 mx-auto mb-2"
+                          className="w-8 h-8 mx-auto mb-auto"
                         />
-                        <div className="space-y-1">
+                        <div className="space-y-0 mt-3">
                           <p className="font-semibold text-sm">{day.high}°</p>
-                          <p className="text-xs opacity-70">{day.low}°</p>
+                          <p className="text-xs text-gray-400">{day.low}°</p>
                         </div>
                       </div>
                     ))}
@@ -282,27 +306,32 @@ const WeatherApp = () => {
                 </div>
               </div>
 
-              {/* Hourly Forecast Sidebar */}
-              <div className="lg:col-span-1">
-                <div className="bg-purple-800/50 backdrop-blur-sm rounded-3xl p-6 text-white">
+              {/* RIGHT COLUMN - Hourly Forecast */}
+              <div className="lg:col-span-5 ">
+                {/* Using the dark card background */}
+                <div className="bg-[#362A4F] rounded-3xl p-6 text-white h-full">
                   <div className="flex justify-between items-center mb-6">
-                    <h4 className="text-lg font-semibold">Hourly forecast</h4>
-                    <span className="text-sm bg-purple-700/50 px-3 py-1 rounded-full">
+                    <h4 className="font-semibold">Hourly forecast</h4>
+                    <span className="text-xs bg-white/10 px-3 py-1 rounded-lg text-gray-300">
                       Tuesday
                     </span>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="">
                     {getHourlyForecast().map((hour, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
+                      // Added border-b for separators
+                      <div
+                        key={index}
+                        className="flex items-center justify-between py-3 border-b border-white/5 last:border-0"
+                      >
+                        <div className="flex items-center gap-4">
                           <img
                             src={getWeatherIcon(hour.weather[0].icon)}
                             alt={hour.weather[0].description}
-                            className="w-8 h-8"
+                            className="w-6 h-6"
                           />
-                          <span className="text-sm">
-                            {index === 0 ? 'Now' : formatTime(hour.dt).replace(' ', '')}
+                          <span className="text-sm text-gray-300">
+                            {index === 0 ? "Now" : formatTime(hour.dt)}
                           </span>
                         </div>
                         <span className="font-semibold">
